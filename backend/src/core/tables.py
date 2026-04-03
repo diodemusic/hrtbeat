@@ -5,4 +5,6 @@ from ..models.users import User  # noqa: F401
 from .engine import engine
 from .sqlabase import Base
 
-Base.metadata.create_all(engine)
+
+def create_tables():
+    Base.metadata.create_all(engine)
