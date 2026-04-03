@@ -15,7 +15,7 @@ class Site(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     url: Mapped[str]
-    status: Mapped[Status] = mapped_column(Status.healthy)
+    status: Mapped[Status] = mapped_column(default=Status.healthy)
     consecutive_fails: Mapped[int] = mapped_column(default=0)
 
     def __repr__(self) -> str:
