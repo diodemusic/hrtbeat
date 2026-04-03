@@ -209,3 +209,6 @@ __marimo__/
 # Prompt
 CLAUDE.md
 .claude
+
+# Database
+database/
