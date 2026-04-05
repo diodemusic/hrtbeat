@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.sqlabase import Base
+from ..models.sites import Status
 
 
 class Ping(Base):
@@ -12,6 +13,7 @@ class Ping(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id"))
     latency: Mapped[int]
+    status: Mapped[Status]
     timestamp: Mapped[datetime]
 
     def __repr__(self) -> str:
