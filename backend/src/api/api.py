@@ -1,5 +1,8 @@
+import socket
+from typing import Annotated
+
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator, HttpUrl
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,15 +19,22 @@ create_tables()
 app = FastAPI()
 
 
+def prepend_scheme(url: str):
+    if "://" not in url:
+        url = f"https://{url}"
+
+    return url
+
+
 class AddSiteRequest(BaseModel):
-    url: str
+    url: Annotated[HttpUrl, BeforeValidator(prepend_scheme)]
 
 
 class DeleteSiteRequest(BaseModel):
     id: int
 
 
-@app.post("/site", status_code=201)
+@app.post("/site-watch", status_code=201)
 def add_site(addSiteRequest: AddSiteRequest):
     def add_site_watch(session, user_id, site_id) -> dict[str, int]:
         site_watch_object = SiteWatch(user_id=user_id, site_id=site_id)
@@ -33,8 +43,15 @@ def add_site(addSiteRequest: AddSiteRequest):
 
         return {"site_watch": site_watch_object.id}
 
+    try:
+        r = socket.getaddrinfo(addSiteRequest.url.host, 0)
+    except socket.gaierror:
+        raise HTTPException(
+            status_code=400, detail=f"Bad Request: {addSiteRequest.url}"
+        )
+
     with Session(engine) as session:
-        stmt = select(Site).where(Site.url == addSiteRequest.url)
+        stmt = select(Site).where(Site.url == str(addSiteRequest.url))
         site = session.execute(stmt).scalars().first()
 
         if site:
@@ -54,7 +71,7 @@ def add_site(addSiteRequest: AddSiteRequest):
 
                 return r
         else:
-            site_object = Site(url=addSiteRequest.url)
+            site_object = Site(url=str(addSiteRequest.url))
             session.add(site_object)
             session.flush()
             r = add_site_watch(session=session, user_id=USER_ID, site_id=site_object.id)
