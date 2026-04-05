@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep, time
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from ..core.engine import engine
@@ -28,7 +28,6 @@ while True:
 
                 site.status = Status.down
                 site.consecutive_fails += 1
-                session.commit()
 
                 continue
 
@@ -44,6 +43,10 @@ while True:
                 site.status = Status.down
                 site.consecutive_fails += 1
 
-            session.commit()
+        session.execute(
+            delete(Ping).where(Ping.timestamp < datetime.now() - timedelta(days=7))
+        )
+
+        session.commit()
 
     sleep(60 * 5)
