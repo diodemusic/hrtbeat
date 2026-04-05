@@ -3,11 +3,12 @@ from typing import Annotated
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, BeforeValidator, HttpUrl
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from ..core.engine import engine
 from ..core.tables import create_tables
+from ..models.pings import Ping
 from ..models.site_watches import SiteWatch
 from ..models.sites import Site
 
@@ -51,14 +52,22 @@ def add_site(addSiteRequest: AddSiteRequest):
         )
 
     with Session(engine) as session:
-        stmt = select(Site).where(Site.url == str(addSiteRequest.url))
-        site = session.execute(stmt).scalars().first()
+        site = (
+            session.execute(select(Site).where(Site.url == str(addSiteRequest.url)))
+            .scalars()
+            .first()
+        )
 
         if site:
-            stmt = select(SiteWatch).where(
-                SiteWatch.user_id == USER_ID, SiteWatch.site_id == site.id
+            site_watch = (
+                session.execute(
+                    select(SiteWatch).where(
+                        SiteWatch.user_id == USER_ID, SiteWatch.site_id == site.id
+                    )
+                )
+                .scalars()
+                .first()
             )
-            site_watch = session.execute(stmt).scalars().first()
 
             if site_watch:
                 raise HTTPException(
@@ -83,10 +92,15 @@ def add_site(addSiteRequest: AddSiteRequest):
 @app.delete("/site-watch", status_code=204)
 def delete_site_watch(deleteSiteRequest: DeleteSiteRequest):
     with Session(engine) as session:
-        stmt = select(SiteWatch).where(
-            SiteWatch.id == deleteSiteRequest.id, SiteWatch.user_id == USER_ID
+        site_watch = (
+            session.execute(
+                select(SiteWatch).where(
+                    SiteWatch.id == deleteSiteRequest.id, SiteWatch.user_id == USER_ID
+                )
+            )
+            .scalars()
+            .first()
         )
-        site_watch = session.execute(stmt).scalars().first()
 
         if not site_watch:
             raise HTTPException(
@@ -97,12 +111,20 @@ def delete_site_watch(deleteSiteRequest: DeleteSiteRequest):
         session.delete(site_watch)
         session.flush()
 
-        stmt = select(SiteWatch).where(SiteWatch.site_id == site_watch.site_id)
-        other_site_watch = session.execute(stmt).scalars().first()
+        other_site_watch = (
+            session.execute(
+                select(SiteWatch).where(SiteWatch.site_id == site_watch.site_id)
+            )
+            .scalars()
+            .first()
+        )
 
         if not other_site_watch:
-            stmt = select(Site).where(Site.id == site_watch.site_id)
-            site = session.execute(stmt).scalars().first()
+            site = (
+                session.execute(select(Site).where(Site.id == site_watch.site_id))
+                .scalars()
+                .first()
+            )
 
             session.delete(site)
 
@@ -112,21 +134,36 @@ def delete_site_watch(deleteSiteRequest: DeleteSiteRequest):
 @app.get("/site-watches", status_code=200)
 def get_site_watches():
     with Session(engine) as session:
-        stmt = select(SiteWatch).where(SiteWatch.user_id == USER_ID)
-        site_watches = session.execute(stmt).scalars()
+        site_watches = session.execute(
+            select(SiteWatch).where(SiteWatch.user_id == USER_ID)
+        ).scalars()
 
         response = []
 
         for site_watch in site_watches:
-            stmt = select(Site).where(Site.id == site_watch.site_id)
-            site = session.execute(stmt).scalars().first()
+            site = (
+                session.execute(select(Site).where(Site.id == site_watch.site_id))
+                .scalars()
+                .first()
+            )
+            pings = (
+                session.execute(
+                    select(Ping)
+                    .where(Ping.site_id == site.id)
+                    .order_by(Ping.id.desc())
+                    .limit(100)
+                )
+                .scalars()
+                .all()
+            )
+
             response.append(
                 {
                     "url": site.url,
                     "status": site.status,
                     "pings": [
-                        {"latency": 20, "timestamp": "2026-04-04T12:00:00"},
-                        {"latency": 35, "timestamp": "2026-04-04T12:05:00"},
+                        {"latency": ping.latency, "timestamp": ping.timestamp}
+                        for ping in pings
                     ],
                 }
             )
