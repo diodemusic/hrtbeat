@@ -1,20 +1,14 @@
-from enum import Enum
-
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..core.sqlabase import Base
-
-
-class Status(Enum):
-    healthy = "healthy"
-    down = "down"
+from ..core.status import Status
 
 
 class Site(Base):
     __tablename__ = "sites"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    url: Mapped[str]
+    url: Mapped[str] = mapped_column(unique=True)
     status: Mapped[Status] = mapped_column(default=Status.healthy)
     consecutive_fails: Mapped[int] = mapped_column(default=0)
 
