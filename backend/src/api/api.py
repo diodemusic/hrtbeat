@@ -3,10 +3,11 @@ from typing import Annotated
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, BeforeValidator, HttpUrl
-from sqlalchemy import desc, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..core.engine import engine
+from ..core.ping import ping_sites
 from ..core.tables import create_tables
 from ..models.pings import Ping
 from ..models.site_watches import SiteWatch
@@ -37,7 +38,7 @@ class DeleteSiteRequest(BaseModel):
 
 @app.post("/site-watch", status_code=201)
 def add_site(addSiteRequest: AddSiteRequest):
-    def add_site_watch(session, user_id, site_id) -> dict[str, int]:
+    def add_site_watch(session, user_id, site_id):
         site_watch_object = SiteWatch(user_id=user_id, site_id=site_id)
         session.add(site_watch_object)
         session.flush()
@@ -84,6 +85,8 @@ def add_site(addSiteRequest: AddSiteRequest):
             session.add(site_object)
             session.flush()
             r = add_site_watch(session=session, user_id=USER_ID, site_id=site_object.id)
+            session.flush()
+            ping_sites(session, site_object.id)
             session.commit()
 
             return r
@@ -162,7 +165,11 @@ def get_site_watches():
                     "url": site.url,
                     "status": site.status,
                     "pings": [
-                        {"latency": ping.latency, "timestamp": ping.timestamp}
+                        {
+                            "latency": ping.latency,
+                            "status": ping.status,
+                            "timestamp": ping.timestamp,
+                        }
                         for ping in pings
                     ],
                 }
