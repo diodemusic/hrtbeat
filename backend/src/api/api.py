@@ -1,9 +1,12 @@
 import socket
-from typing import Annotated
+from typing import Annotated, Optional, Union
 
+import phonenumbers
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, BeforeValidator, HttpUrl
+from pydantic import BaseModel, BeforeValidator, EmailStr, HttpUrl
+from pydantic_extra_types.phone_numbers import PhoneNumberValidator
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from ..core.engine import engine
@@ -12,6 +15,7 @@ from ..core.tables import create_tables
 from ..models.pings import Ping
 from ..models.site_watches import SiteWatch
 from ..models.sites import Site
+from ..models.users import User
 
 USER_ID = 1
 
@@ -34,6 +38,14 @@ class AddSiteRequest(BaseModel):
 
 class DeleteSiteRequest(BaseModel):
     id: int
+
+
+MyNumberType = Annotated[Union[str, phonenumbers.PhoneNumber], PhoneNumberValidator()]
+
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    mobile_number: Optional[MyNumberType] = None
 
 
 @app.post("/site-watch", status_code=201)
@@ -176,3 +188,34 @@ def get_site_watches():
             )
 
         return response
+
+
+@app.put("/user", status_code=200)
+def update_user(userUpdateRequest: UserUpdateRequest):
+    with Session(engine) as session:
+        try:
+            user = (
+                session.execute(select(User).where(User.id == USER_ID)).scalars().one()
+            )
+        except NoResultFound:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Not found: {USER_ID}",
+            )
+
+        if "email" in userUpdateRequest.model_fields_set:
+            user.email = userUpdateRequest.email
+
+        if "mobile_number" in userUpdateRequest.model_fields_set:
+            user.mobile_number = userUpdateRequest.mobile_number
+
+        r = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "mobile_number": user.mobile_number,
+        }
+
+        session.commit()
+
+    return r
