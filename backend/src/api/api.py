@@ -48,6 +48,12 @@ class UserUpdateRequest(BaseModel):
     mobile_number: Optional[MyNumberType] = None
 
 
+class UserSiteWatchNotificationsRequest(BaseModel):
+    site_id: int
+    notify_email: Optional[bool] = None
+    notify_mobile: Optional[bool] = None
+
+
 @app.post("/site-watch", status_code=201)
 def add_site(addSiteRequest: AddSiteRequest):
     def add_site_watch(session, user_id, site_id):
@@ -107,20 +113,17 @@ def add_site(addSiteRequest: AddSiteRequest):
 @app.delete("/site-watch", status_code=204)
 def delete_site_watch(deleteSiteRequest: DeleteSiteRequest):
     with Session(engine) as session:
-        site_watch = (
-            session.execute(
+        try:
+            site_watch = session.execute(
                 select(SiteWatch).where(
-                    SiteWatch.id == deleteSiteRequest.id, SiteWatch.user_id == USER_ID
+                    SiteWatch.id == deleteSiteRequest.id,
+                    SiteWatch.user_id == USER_ID,
                 )
-            )
-            .scalars()
-            .first()
-        )
-
-        if not site_watch:
+            ).scalar_one()
+        except NoResultFound:
             raise HTTPException(
                 status_code=404,
-                detail=f"Not found: {site_watch}",
+                detail=f"Not found: site_watch {deleteSiteRequest.id}",
             )
 
         session.delete(site_watch)
@@ -128,18 +131,18 @@ def delete_site_watch(deleteSiteRequest: DeleteSiteRequest):
 
         other_site_watch = (
             session.execute(
-                select(SiteWatch).where(SiteWatch.site_id == site_watch.site_id)
+                select(SiteWatch)
+                .where(SiteWatch.site_id == site_watch.site_id)
+                .limit(1)
             )
             .scalars()
             .first()
         )
 
         if not other_site_watch:
-            site = (
-                session.execute(select(Site).where(Site.id == site_watch.site_id))
-                .scalars()
-                .first()
-            )
+            site = session.execute(
+                select(Site).where(Site.id == site_watch.site_id)
+            ).scalar_one()
 
             session.delete(site)
 
@@ -156,21 +159,15 @@ def get_site_watches():
         response = []
 
         for site_watch in site_watches:
-            site = (
-                session.execute(select(Site).where(Site.id == site_watch.site_id))
-                .scalars()
-                .first()
-            )
-            pings = (
-                session.execute(
-                    select(Ping)
-                    .where(Ping.site_id == site.id)
-                    .order_by(Ping.id.desc())
-                    .limit(100)
-                )
-                .scalars()
-                .all()
-            )
+            site = session.execute(
+                select(Site).where(Site.id == site_watch.site_id)
+            ).scalar_one()
+            pings = session.execute(
+                select(Ping)
+                .where(Ping.site_id == site.id)
+                .order_by(Ping.id.desc())
+                .limit(100)
+            ).scalars()
 
             response.append(
                 {
@@ -194,9 +191,7 @@ def get_site_watches():
 def update_user(userUpdateRequest: UserUpdateRequest):
     with Session(engine) as session:
         try:
-            user = (
-                session.execute(select(User).where(User.id == USER_ID)).scalars().one()
-            )
+            user = session.execute(select(User).where(User.id == USER_ID)).scalar_one()
         except NoResultFound:
             raise HTTPException(
                 status_code=404,
@@ -214,6 +209,63 @@ def update_user(userUpdateRequest: UserUpdateRequest):
             "username": user.username,
             "email": user.email,
             "mobile_number": user.mobile_number,
+        }
+
+        session.commit()
+
+    return r
+
+
+@app.put("/site-watches", status_code=200)
+def update_site_watch_notifications(
+    userSiteWatchNotificationsRequest: UserSiteWatchNotificationsRequest,
+):
+    with Session(engine) as session:
+        try:
+            user = session.execute(select(User).where(User.id == USER_ID)).scalar_one()
+        except NoResultFound:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Not found: user {USER_ID}",
+            )
+
+        if (
+            "notify_email" in userSiteWatchNotificationsRequest.model_fields_set
+            and not user.email
+        ) or (
+            "notify_mobile" in userSiteWatchNotificationsRequest.model_fields_set
+            and not user.mobile_number
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Not found: {user}",
+            )
+
+        try:
+            site_watch = session.execute(
+                select(SiteWatch).where(
+                    SiteWatch.user_id == USER_ID,
+                    SiteWatch.site_id == userSiteWatchNotificationsRequest.site_id,
+                )
+            ).scalar_one()
+        except NoResultFound:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Not found: site_id {userSiteWatchNotificationsRequest.site_id}",
+            )
+
+        if "notify_email" in userSiteWatchNotificationsRequest.model_fields_set:
+            site_watch.notify_email = userSiteWatchNotificationsRequest.notify_email
+
+        if "notify_mobile" in userSiteWatchNotificationsRequest.model_fields_set:
+            site_watch.notify_mobile = userSiteWatchNotificationsRequest.notify_mobile
+
+        r = {
+            "id": site_watch.id,
+            "user_id": site_watch.user_id,
+            "site_id": site_watch.site_id,
+            "notify_email": site_watch.notify_email,
+            "notify_mobile": site_watch.notify_mobile,
         }
 
         session.commit()
