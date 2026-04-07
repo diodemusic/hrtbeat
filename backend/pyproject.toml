@@ -1,9 +1,9 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "hrtbeat is an uptime and availability monitoring service"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi[standard]>=0.128.8",
     "httpx>=0.28.1",
