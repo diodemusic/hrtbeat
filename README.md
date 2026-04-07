@@ -1,2 +1,2 @@
-# pingu
-pingu is an uptime and availability monitoring service
+# hrtbeat
+hrtbeat is an uptime and availability monitoring service
