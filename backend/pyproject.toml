@@ -5,6 +5,7 @@ description = "hrtbeat is an uptime and availability monitoring service"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "boto3>=1.42.85",
     "fastapi[standard]>=0.128.8",
     "httpx>=0.28.1",
     "phonenumbers>=9.0.27",
