@@ -12,6 +12,8 @@ class SiteWatch(Base):
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id"))
     notify_email: Mapped[bool] = False
     notify_mobile: Mapped[bool] = False
+    notified_email: Mapped[bool] = False
+    notified_mobile: Mapped[bool] = False
 
     def __repr__(self) -> str:
         return f"SiteWatch(id={self.id!r}, user_id={self.user_id!r}, site_id={self.site_id!r}, notify_email={self.notify_email!r}, notify_mobile={self.notify_mobile!r})"
