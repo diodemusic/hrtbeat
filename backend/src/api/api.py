@@ -201,6 +201,14 @@ def update_user(userUpdateRequest: UserUpdateRequest):
         if "email" in userUpdateRequest.model_fields_set:
             user.email = userUpdateRequest.email
 
+            if not userUpdateRequest.email:
+                site_watches = session.execute(
+                    select(SiteWatch).where(SiteWatch.user_id == USER_ID)
+                ).scalars()
+
+                for site_watch in site_watches:
+                    site_watch.notify_email = False
+
         if "mobile_number" in userUpdateRequest.model_fields_set:
             user.mobile_number = userUpdateRequest.mobile_number
 
