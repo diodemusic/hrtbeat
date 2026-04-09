@@ -4,6 +4,7 @@ from time import time
 import httpx
 from sqlalchemy import select
 
+from ..core.notifier import notify_email_users
 from ..core.status import Status
 from ..models.pings import Ping
 from ..models.sites import Site
@@ -50,3 +51,5 @@ def ping_sites(session, site_id: int = None):
             site.status = Status.down
             pinger_object.status = Status.down
             site.consecutive_fails += 1
+
+        notify_email_users(session, site_id, site.url, site.consecutive_fails)
