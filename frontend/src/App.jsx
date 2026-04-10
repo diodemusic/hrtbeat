@@ -6,7 +6,7 @@ function App() {
 
   return (
     <>
-      <h1>hrtbeat</h1>
+      <h1>hellor</h1>
     </>
   )
 }
