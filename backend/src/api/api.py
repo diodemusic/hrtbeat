@@ -185,6 +185,7 @@ def get_site_watches():
 
             response.append(
                 {
+                    "id": site_watch.id,
                     "url": site.url,
                     "status": site.status,
                     "pings": [
