@@ -3,6 +3,7 @@ from typing import Annotated, Optional, Union
 
 import phonenumbers
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, BeforeValidator, EmailStr, HttpUrl
 from pydantic_extra_types.phone_numbers import PhoneNumberValidator
 from sqlalchemy import select
@@ -23,6 +24,19 @@ create_tables()
 
 
 app = FastAPI()
+
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def prepend_scheme(url: str):
