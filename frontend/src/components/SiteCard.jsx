@@ -5,10 +5,14 @@ function SiteCard({ site }) {
                 <span className="text-lg font-medium">{site.url}</span>
                 <span className="text-sm text-neutral-400">{site.pings[0]?.latency}ms</span>
 
-                {/* <div>Status: {site.status}</div> */}
-
             </div>
-        </li>
+
+            <div className="flex gap-1 mt-4">
+                {site.pings.slice(0, 30).reverse().map((ping) => (
+                    <div key={ping.timestamp} className={`flex-1 h-6 rounded-sm ${ping.status === "healthy" ? "bg-green-500" : "bg-red-500"}`} />
+                ))}
+            </div>
+        </li >
     )
 }
 
