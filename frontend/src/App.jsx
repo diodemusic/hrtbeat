@@ -32,7 +32,11 @@ function App() {
   return (
     <>
       <div className="max-w-2xl mx-auto px-6 py-16">
-        <h1>hrtbeat</h1>
+        <header className="mb-12">
+          <h1 className="text-4xl font-bold tracking-tight mb-8">hrtbeat</h1>
+          <h2 className="text-sm text-neutral-400">uptime monitoring</h2>
+        </header>
+
 
         <input
           type="text"
