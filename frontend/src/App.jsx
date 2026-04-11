@@ -33,10 +33,9 @@ function App() {
     <>
       <div className="max-w-2xl mx-auto px-6 py-16">
         <header className="mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-8">hrtbeat</h1>
-          <h2 className="text-sm text-neutral-400">uptime monitoring</h2>
+          <h1 className="text-4xl font-bold tracking-tight mb-1">hrtbeat</h1>
+          <p className="text-sm text-neutral-400">uptime monitoring</p>
         </header>
-
 
         <input
           type="text"

@@ -2,4 +2,5 @@ body {
   background-color: black;
   color: white;
   text-align: center;
+  font-family: "Inter", system-ui, sans-serif;
 }
