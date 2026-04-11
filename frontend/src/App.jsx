@@ -39,14 +39,14 @@ function App() {
 
         <div className="flex gap-2 mb-8">
           <input
-            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md px-4 py-2 mb-8 focus:outline-none focus:ring-2 focus:ring-neutral-600"
+            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-600"
             type="text"
             placeholder="example.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
 
-          <button type="submit" onClick={watchNewSite}>
+          <button className="bg-white text-black px-4 py-2 rounded-md font-medium hover:bg-neutral-200 cursor-pointer" type="submit" onClick={watchNewSite}>
             Add Site
           </button>
         </div>
