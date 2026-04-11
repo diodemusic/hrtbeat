@@ -37,15 +37,19 @@ function App() {
           <p className="text-sm text-neutral-400">uptime monitoring</p>
         </header>
 
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
+        <div className="flex gap-2 mb-8">
+          <input
+            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md px-4 py-2 mb-8 focus:outline-none focus:ring-2 focus:ring-neutral-600"
+            type="text"
+            placeholder="example.com"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
 
-        <button type="submit" onClick={watchNewSite}>
-          Add Site
-        </button>
+          <button type="submit" onClick={watchNewSite}>
+            Add Site
+          </button>
+        </div>
 
         <ul className="list-none p-0">
           {sites.map((site) =>
