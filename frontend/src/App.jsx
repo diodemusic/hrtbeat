@@ -30,18 +30,19 @@ function App() {
 
   return (
     <>
-      <div>
+      <div className="max-w-2xl mx-auto px-6 py-16">
         <h1>hrtbeat</h1>
-      </div>
-      <div>
+
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
+
         <button type="submit" onClick={watchNewSite}>
           Add Site
         </button>
+
         <ul>
           {sites.map((site) => (
             <li key={site.id} className="site-watch-list">
