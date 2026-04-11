@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import SiteCard from "./components/SiteCard"
 
 function App() {
   const [url, setUrl] = useState("");
@@ -43,14 +44,9 @@ function App() {
           Add Site
         </button>
 
-        <ul>
-          {sites.map((site) => (
-            <li key={site.id} className="site-watch-list">
-              <div>URL: {site.url}</div>
-              <div>Status: {site.status}</div>
-              <div>Ping: {site.pings[0]?.latency}</div>
-            </li>
-          )
+        <ul className="list-none p-0">
+          {sites.map((site) =>
+            <SiteCard key={site.id} site={site} />
           )}
         </ul>
       </div>
