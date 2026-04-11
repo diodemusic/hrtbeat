@@ -1,2 +1,2 @@
-# hrtbeat
-hrtbeat is an uptime and availability monitoring service
+# uptide
+uptide is an uptime and availability monitoring service

@@ -24,7 +24,7 @@ def notify_email_users(session, site_id, url, consecutive_fails):
                     continue
 
                 client.send_email(
-                    Source="alerts@hrtbeat.io",
+                    Source="alerts@uptide.io",
                     Destination={
                         "ToAddresses": [
                             user.email,
