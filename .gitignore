@@ -209,6 +209,7 @@ __marimo__/
 # Prompt
 CLAUDE.md
 .claude
+HANDOFF.md
 
 # Database
 database/
