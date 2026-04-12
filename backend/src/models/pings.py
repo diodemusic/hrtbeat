@@ -12,7 +12,7 @@ class Ping(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id"))
-    latency: Mapped[int]
+    latency: Mapped[int | None]
     status: Mapped[Status]
     timestamp: Mapped[datetime]
 

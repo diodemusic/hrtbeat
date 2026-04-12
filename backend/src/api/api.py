@@ -1,5 +1,5 @@
 import socket
-from typing import Annotated, Optional, Union
+from typing import Annotated, Union
 
 import phonenumbers
 from fastapi import FastAPI, HTTPException
@@ -58,14 +58,14 @@ MyNumberType = Annotated[Union[str, phonenumbers.PhoneNumber], PhoneNumberValida
 
 
 class UserUpdateRequest(BaseModel):
-    email: Optional[EmailStr] = None
-    mobile_number: Optional[MyNumberType] = None
+    email: EmailStr | None = None
+    mobile_number: MyNumberType | None = None
 
 
 class UserSiteWatchNotificationsRequest(BaseModel):
     site_id: int
-    notify_email: Optional[bool] = None
-    notify_mobile: Optional[bool] = None
+    notify_email: bool | None = None
+    notify_mobile: bool | None = None
 
 
 @app.post("/site-watch", status_code=201)
