@@ -25,7 +25,7 @@ def ping_sites(session, site_id: int = None):
         except httpx.ConnectError:
             pinger_object = Ping(
                 site_id=site.id,
-                latency=-1,
+                latency=None,
                 status=Status.down,
                 timestamp=datetime.now(),
             )
